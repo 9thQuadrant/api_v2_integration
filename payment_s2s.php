@@ -1,33 +1,27 @@
 public static function getHmacParameters($method, $path, $content, $username, $salt) { 
  
-    $version = "HTTP/1.1" ; 
- 
-    $requestLine = strtoupper($method) . " " . $path . " " . $version; 
     $dateString = gmdate('D, d M Y H:i:s T'); 
     $digest = base64_encode(hash("sha256", $content, true)); 
  
     $signing_headers = [ 
         'date' => $dateString, 
-        'request-line' => $requestLine, 
         'digest' => $digest 
     ]; 
  
     $signing_string = ""; 
     $headers = ""; 
     foreach ($signing_headers as $key => $value) { 
-        if ($key != "request-line") { 
-            $signing_string .= $key . ":" . " "; 
-        } 
+        $signing_string .= $key . ":" . " "; 
         $signing_string .= $value . "\n"; 
         $headers .= $key . " "; 
     } 
     $signing_string = rtrim($signing_string, "\n"); 
     $headers = rtrim($headers, " "); 
  
-    $hmacHash = hash_hmac("sha1", $signing_string, $salt, true); 
+    $hmacHash = hash_hmac("sha256", $signing_string, $salt, true); 
  
     $signature = base64_encode($hmacHash); 
-    $authorization = "hmac username=\"$username\", algorithm=\"hmac-sha1\", headers=\"$headers\", signature=\"$signature\""; 
+    $authorization = "hmac username=\"$username\", algorithm=\"hmac-sha256\", headers=\"$headers\", signature=\"$signature\""; 
  
     return [ 
         'dateString' => $dateString, 

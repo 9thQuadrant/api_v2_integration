@@ -20,7 +20,6 @@ import java.util.TimeZone;
 class Main { 
  
     public static HashMap<String, String> getAuthorizationHeaders(String method,String path ,String body, String merchantKey, String merchantSalt) throws IOException, NoSuchAlgorithmException, InvalidKeyException { 
-        String requestLine= method.toUpperCase() + " " + path + " " + "HTTP/1.1"; 
         try { 
             HashMap<String, String> headers = new HashMap<String, String>(); 
             Date today = new Date(); 
@@ -29,13 +28,13 @@ class Main {
             String date = sdf.format(today); 
             byte[] digest = MessageDigest.getInstance("SHA-256").digest(body.getBytes()); 
             String digestData = Base64.encode(digest); 
-            String signingString = "date: " + date + "\n" + requestLine + "\ndigest: " + digestData; 
-            SecretKeySpec signingKey = new SecretKeySpec(merchantSalt.getBytes(), "HmacSHA1"); 
-            Mac mac = Mac.getInstance("HmacSHA1"); 
+            String signingString = "date: " + date + "\n" + "digest: " + digestData; 
+            SecretKeySpec signingKey = new SecretKeySpec(merchantSalt.getBytes(), "HmacSHA256"); 
+            Mac mac = Mac.getInstance("HmacSHA256"); 
             mac.init(signingKey); 
             byte[] result = mac.doFinal(signingString.getBytes("ASCII")); 
             String hash = Base64.encode(result); 
-            String authorization = "hmac username=" + "\"" + merchantKey + "\", algorithm=" + "\"hmac-sha1\", headers=" + "\"" + "date request-line digest" + "\", signature=" + "\"" + hash + "\""; 
+            String authorization = "hmac username=" + "\"" + merchantKey + "\", algorithm=" + "\"hmac-sha256\", headers=" + "\"" + "date digest" + "\", signature=" + "\"" + hash + "\""; 
             headers.put("Date", date); 
             headers.put("Digest", digestData); 
             headers.put("Authorization", authorization); 
